@@ -1,0 +1,19 @@
+name = "cf-ai-task-assistant"
+main = "src/index.ts"
+compatibility_date = "2024-11-19"
+compatibility_flags = ["nodejs_compat"]
+
+[ai]
+binding = "AI"
+
+[[durable_objects.bindings]]
+name = "TaskAssistantAgent"
+class_name = "TaskAssistantAgent"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TaskAssistantAgent"]
+
+[vars]
+ENVIRONMENT = "production"
+
