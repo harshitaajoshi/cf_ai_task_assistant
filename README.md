@@ -2,8 +2,6 @@
 
 An AI-powered Task Assistant Agent built on Cloudflare's platform. This application demonstrates a complete AI agent system with chat interface, state management, memory, and LLM integration.
 
-> **Note**: This repository should be named with the `cf_ai_` prefix (e.g., `cf_ai_task_assistant`) as per assignment requirements.
-
 ## Features
 
 - 🤖 **AI-Powered Chat**: Interactive chat interface using Llama 3.3 (70B) on Workers AI
