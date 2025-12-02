@@ -1,4 +1,4 @@
-import { AgentNamespace } from "agents";
+import { routeAgentRequest } from "agents";
 import { TaskAssistantAgent } from "./agent";
 
 export interface Env {
@@ -8,18 +8,18 @@ export interface Env {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
+    // Route agent requests (handles WebSocket and HTTP)
+    // routeAgentRequest automatically detects agents from env bindings
+    const agentResponse = await routeAgentRequest(request, env);
 
-    // Handle WebSocket upgrade requests
-    if (request.headers.get("Upgrade") === "websocket") {
-      const agentNamespace = new AgentNamespace(env.TaskAssistantAgent);
-      const agentId = url.searchParams.get("agentId") || "default";
-      return agentNamespace.connect(agentId, request);
+    if (agentResponse) {
+      return agentResponse;
     }
+
+    const url = new URL(request.url);
 
     // Serve HTML page
     if (url.pathname === "/" && request.method === "GET") {
-      // Try to serve static HTML if available, otherwise return API info
       return new Response(
         `<!DOCTYPE html>
 <html>
@@ -30,13 +30,13 @@ export default {
 </head>
 <body>
   <h1>CF AI Task Assistant API</h1>
-  <p>Connect via WebSocket: <code>wss://${url.host}/?agentId=your-agent-id</code></p>
+  <p>Connect via WebSocket: <code>wss://${url.host}/TaskAssistantAgent/your-agent-id</code></p>
   <p>For a full UI, deploy this worker with Pages or use the WebSocket endpoint directly.</p>
   <h2>Endpoints:</h2>
   <ul>
     <li><code>GET /</code> - This page</li>
     <li><code>GET /health</code> - Health check</li>
-    <li><code>WebSocket /?agentId=&lt;id&gt;</code> - Connect to agent</li>
+    <li><code>WebSocket /TaskAssistantAgent/&lt;id&gt;</code> - Connect to agent</li>
   </ul>
 </body>
 </html>`,
@@ -46,7 +46,7 @@ export default {
       );
     }
 
-    // Handle HTTP requests
+    // Health check endpoint
     if (url.pathname === "/health") {
       return new Response(
         JSON.stringify({
@@ -61,14 +61,6 @@ export default {
           headers: { "Content-Type": "application/json" },
         }
       );
-    }
-
-    // Proxy to agent for HTTP requests
-    if (url.pathname.startsWith("/api/")) {
-      const agentNamespace = new AgentNamespace(env.TaskAssistantAgent);
-      const agentId = url.searchParams.get("agentId") || "default";
-      const agent = await agentNamespace.get(agentId);
-      return agent.fetch(request);
     }
 
     return new Response("Not Found", { status: 404 });

@@ -196,7 +196,10 @@ Be friendly, concise, and helpful. If the user wants to add a task, suggest they
         }
       );
 
-      const assistantMessage = response.response || "I'm here to help!";
+      // Workers AI returns the response directly as a string or in a response property
+      const assistantMessage = typeof response === 'string' 
+        ? response 
+        : (response as any).response || String(response) || "I'm here to help!";
       this.addToHistory("assistant", assistantMessage);
 
       return assistantMessage;
